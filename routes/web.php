@@ -3,9 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SuburbAnalysisController;
 
-Route::get('/suburb-analysis/{suburbName}', [SuburbAnalysisController::class, 'show']);
+// Route::post('/suburb-analysis/{postcode}', [SuburbAnalysisController::class, 'show'])->name('suburb-analysis');
 
 Route::get('/', function () {
-    return view('current-data');
+    return view('current-data', ['new' => 'true']);
 });
-Route::get('/suburb-analysis', [SuburbAnalysisController::class, 'show']);
+Route::post('/suburb-analysis', [SuburbAnalysisController::class, 'show'])->name('suburb-analysis');
+Route::get('/process-csv', [SuburbAnalysisController::class, 'processCsvWithPostcodes']);

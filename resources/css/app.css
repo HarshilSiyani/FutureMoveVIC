@@ -1,12 +1,8 @@
-.card {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
+@import '~bootstrap/scss/bootstrap';
+
 .score {
     font-size: 24px;
     font-weight: bold;
     color: #27ae60;
 }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
