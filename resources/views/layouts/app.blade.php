@@ -1,22 +1,30 @@
-<!-- resources/views/layouts/app.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Default Title')</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <title>@yield('title', 'Sustainability Dashboard')</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @yield('styles')
 </head>
-<body>
-    <div class="container">
+<body class="bg-gray-100">
+    <nav class="bg-green-600 text-white p-4">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold">Sustainability Dashboard</h1>
+        </div>
+    </nav>
+
+    <main class="container mx-auto mt-8">
         @yield('content')
-    </div>
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="{{ asset('js/app.js') }}"></script>
+    </main>
+
+    <footer class="bg-green-600 text-white p-4 mt-8">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2023 Sustainability Dashboard. All rights reserved.</p>
+        </div>
+    </footer>
+
+    @yield('scripts')
 </body>
 </html>

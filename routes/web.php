@@ -5,8 +5,10 @@ use App\Http\Controllers\SuburbAnalysisController;
 
 // Route::post('/suburb-analysis/{postcode}', [SuburbAnalysisController::class, 'show'])->name('suburb-analysis');
 
-Route::get('/', function () {
-    return view('current-data', ['new' => 'true']);
-});
-Route::post('/suburb-analysis', [SuburbAnalysisController::class, 'show'])->name('suburb-analysis');
-Route::get('/process-csv', [SuburbAnalysisController::class, 'processCsvWithPostcodes']);
+// GET request for viewing the dashboard
+Route::get('/dashboard', [SuburbAnalysisController::class, 'show'])->name('dashboard');
+
+// POST request for form submission
+Route::post('/dashboard', [SuburbAnalysisController::class, 'show']);
+
+// Route::get('/process-csv', [SuburbAnalysisController::class, 'processCsvWithPostcodes']);

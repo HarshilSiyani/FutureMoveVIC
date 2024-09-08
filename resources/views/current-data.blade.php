@@ -1,91 +1,156 @@
 @extends('layouts.app')
 
+
 @section('content')
+<div class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen p-6">
+    <h1 class="text-4xl font-bold mb-8 text-center text-green-600">
+        {{ $lgaName }} Sustainability Dashboard
+    </h1>
 
-@if(!empty($new)) 
-<form action="{{ route('suburb-analysis') }}" method="POST">
-    @csrf
-    <select id="location" class="form-control" name="suburb">
-        <option value="3155">Boronia</option>
-        <option value="3156">Ferntree Gully - North</option>
-        <option value="3153">Bayswater</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-@else 
-<h1>CommuteSmart Victoria: Policymaker Transit Planning Tool</h1>
+    <x-lga-selector :lgaNames="$lgaNames" :selectedLga="$lgaName" />
 
-<form action="{{ route('suburb-analysis') }}" method="POST">
-    @csrf
-    <select id="location" class="form-control" name="suburb">
-        <option value="3155">Boronia</option>
-        <option value="3156">Ferntree Gully - North</option>
-        <option value="3153">Bayswater</option>
-        <option value="3152">Knoxfield</option>
-    </select>
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
-    <br>
-    <div class="row">
-        <div class="col-md-6 card">
-            <h2>Current Data (2023) - {{$suburb}}</h2>
-            <p>Population: {{$population ?? 'null'}}</p>
-            <p>Registered Vehicles: {{$count ?? 'null'}}</p>
-            <p>Bus Stops: {{$bus_stops ?? '0'}}</p>
-            <p>Train Stations: {{$train_stops ?? '0'}}</p>
-            <p>Public Transport Stops: {{$bus_stops + $train_stops}}</p>
-            <p>Annual PT Patronage: {{$annual_patronage ?? 'no station in the suburb'}}</p>
-            <p>Sustainability Score: <span class="score">7.2 / 10</span></p>
-        </div>
-        <div class="col-md-6 card">
-            <h2>2030 Projections - Richmond</h2>
-            <div>
-                <label>Projected Population: 38,000</label>
-                <input type="range" class="slider" min="32000" max="45000" value="38000">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Current Sustainability Score</h2>
+            <div class="text-5xl font-bold text-green-600">{{ number_format($sustainabilityScore, 1) }}/10</div>
+            <div class="mt-4 bg-gray-200 h-4 rounded-full overflow-hidden">
+                <div class="bg-green-500 h-full" style="width: {{ $sustainabilityScore * 10 }}%"></div>
             </div>
-            <div>
-                <label>New Public Transport Stops: 5</label>
-                <input type="range" class="slider" min="0" max="20" value="5">
-            </div>
-            <p>Projected Annual PT Patronage: 6,840,000</p>
-            <p>Projected Sustainability Score: <span class="score">8.1 / 10</span></p>
         </div>
-    </div>
-    <h1>Average Commute Times for LGA: KNOX</h1>
-    <div class="row">
-        <div class="col-md-6 card">
-            <h2>Mode Share</h2>
-            <p>Bus: {{$bus ?? 'null'}}</p>
-            <p>Train: {{$train ?? 'null'}}</p>
-            <p>Vehicle: {{$vehicle ?? 'null'}}</p>
-            <p>Walking: {{$walking ?? 'null'}}</p>
-            <p>Other: {{$other ?? 'null'}}</p>
-            <p>count: {{$count ?? 'null'}}</p>
-            <p>Accounted for: {{$bus + $walking + $vehicle + $train}} responses</p>
-            <p>Unaccounted for: {{$survey_total - ($bus + $walking + $vehicle + $train)}} responses</p>
-        </div>
-        <div class="col-md-6 card">
-            <h2>Public Transport</h2>
-            <p>Bus: 25 minutes</p>
-            <p>Train: 45 minutes</p>
 
-            <p>One: {{$one ?? 'null'}}</p>
-            <p>Two: {{$two ?? 'null'}}</p>
-            <p>Three: {{$three ?? 'null'}}</p>
-            <p>Four: {{$four ?? 'null'}}</p>
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Projected 2030 Score</h2>
+            <div class="text-5xl font-bold text-blue-600">{{ number_format($futureScore, 1) }}/10</div>
+            <p class="mt-2 text-gray-600">Based on current trends</p>
+            <div class="mt-4 flex items-center">
+                <span class="text-2xl font-bold {{ $futureScore > $sustainabilityScore ? 'text-green-500' : 'text-red-500' }}">
+                    {{ $futureScore > $sustainabilityScore ? '+' : '' }}{{ number_format($futureScore - $sustainabilityScore, 1) }}
+                </span>
+                <svg class="w-6 h-6 ml-2 {{ $futureScore > $sustainabilityScore ? 'text-green-500' : 'text-red-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $futureScore > $sustainabilityScore ? 'M5 10l7-7m0 0l7 7m-7-7v18' : 'M19 14l-7 7m0 0l-7-7m7 7V3' }}"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Population</h2>
+            <div class="text-4xl font-bold text-purple-600">{{ number_format($lgaData['population']) }}</div>
+            <p class="mt-2 text-gray-600">Current population</p>
+            <div class="mt-4 flex items-center">
+                <span class="text-2xl font-bold text-blue-500">
+                    {{ number_format($lgaData['predicted_population_2030']) }}
+                </span>
+                <p class="ml-2 text-gray-600">Predicted by 2030</p>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6 card">
-            <h2>Walking</h2>
-            <p>Peak Hour: 15 minutes</p>
-            <p>Off-Peak: 10 minutes</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Transport Mode Distribution</h2>
+            <canvas id="transportModeChart"></canvas>
         </div>
-        <div class="col-md-6 card">
-            <h2>Car</h2>
-            <p>Peak Hour: 35 minutes</p>
-            <p>Off-Peak: 20 minutes</p>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Average Travel Times</h2>
+            <canvas id="travelTimeChart"></canvas>
         </div>
     </div>
-@endif
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Public Transport Usage</h2>
+            <div class="flex justify-between items-center mb-4">
+                <span class="text-gray-600">Annual Train Passengers:</span>
+                <span class="font-bold">{{ number_format($lgaData['annual_train_passengers']) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Bus Stops:</span>
+                <span class="font-bold">{{ $lgaData['bus_stops'] }}</span>
+            </div>
+            <div class="flex justify-between items-center mt-2">
+                <span class="text-gray-600">Train Stops:</span>
+                <span class="font-bold">{{ $lgaData['train_stops'] }}</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Vehicle Usage</h2>
+            <div class="text-4xl font-bold text-red-600 mb-2">{{ number_format($lgaData['registered_vehicles']) }}</div>
+            <p class="text-gray-600">Registered Vehicles</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Recommended Improvements</h2>
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-gray-600">Additional Bus Stops:</span>
+                <span class="font-bold text-green-600">+{{ $additionalBusStops }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Additional Train Stops:</span>
+                <span class="font-bold text-green-600">+{{ $additionalTrainStops }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Transport Mode Distribution Chart
+    new Chart(document.getElementById('transportModeChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Bus', 'Train', 'Vehicle', 'Walking'],
+            datasets: [{
+                data: [
+                    {{ $lgaData['bus_users'] }},
+                    {{ $lgaData['train_users'] }},
+                    {{ $lgaData['vehicle_users'] }},
+                    {{ $lgaData['walkers'] }}
+                ],
+                backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#9C27B0']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+
+    // Average Travel Times Chart
+    new Chart(document.getElementById('travelTimeChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Bus', 'Train', 'Vehicle', 'Walking'],
+            datasets: [{
+                label: 'Average Travel Time (minutes)',
+                data: [
+                    {{ $lgaData['avg_time_bus'] }},
+                    {{ $lgaData['avg_time_train'] }},
+                    {{ $lgaData['avg_time_vehicle'] }},
+                    {{ $lgaData['avg_time_walking'] }}
+                ],
+                backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#9C27B0']
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Time (minutes)'
+                    }
+                }
+            }
+        }
+    });
+</script>
 @endsection

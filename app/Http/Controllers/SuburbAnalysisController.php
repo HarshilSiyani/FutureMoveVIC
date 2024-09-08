@@ -11,239 +11,236 @@ use geoPHP;
 class SuburbAnalysisController extends Controller
 {
     protected $baseUrl = 'https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/LGA/MapServer/0/query';
-    public function _construct()
+
+    public function show(Request $request)
     {
-        // $this->loadLgaData();
-    }
-    // public function show($suburbName)
-    // {
-    //     $suburb = Suburb::where('name', $suburbName)->firstOrFail();
-
-    //     $currentData = [
-    //         'name' => $suburb->name,
-    //         'population' => $suburb->population,
-    //         'registeredVehicles' => $suburb->registered_vehicles,
-    //         'publicTransportStops' => $suburb->public_transport_stops,
-    //         'annualPatronage' => $suburb->annual_patronage,
-    //         'sustainabilityScore' => $suburb->calculateSustainabilityScore(),
-    //     ];
-
-    //     // Here you would also prepare data for other sections
-
-    //     return view('suburb-analysis.show');
-    // }
-
-    public function show(Request $request) {
-
-       
-
-        // $suburb = "";
-        // switch($postcode) {
-        //     case 3155:
-        //         $suburb = "Boronia";
-        //         break;
-        //     case 3156:  
-        //         $suburb = "Ferntree Gully - North";
-        //         break;
-        //     case 3152:  
-        //         $suburb = "Knoxfield - Scoresby";
-        //         break;
-        //     case 3153:
-        //         $suburb = "Bayswater";
-        //         break;
-        // }
-
-
-        // $suburb_population = DB::table('suburb_population')->where('name', $suburb)->get();
-
-        // $suburb_population = $suburb_population[0]->population;
-
-        // $bus_stops = DB::table('bus_stops')->where('postcode', $postcode)->get()->count();
-        // $train_stops = DB::table('train_stop')->where('postcode', $postcode)->get()->count();
-        // $lga = $this->findLga(145.271162184045, -37.8377010038382);
-        // dd($lga);
-
-        
-
-        // dd(1);
-
-
-        dd($lgaData);
-
-
-        $survey = Http::get('https://discover.data.vic.gov.au/api/3/action/datastore_search?resource_id=32949433-4c83-4ce8-83f5-7f7b40bd04d0&q=Knox&limit=100000');
-        $survey->json();
-        
-        $survey = $survey['result']['records'] ?? 0;
-        // dd($survey);
-        $walking = 0;
-        $vehicle = 0;
-        $train = 0;
-        $bus = 0;
-        $other = 0;
-        $count = 0;
-        $one = 0;
-        $two = 0;
-        $three = 0;
-        $four = 0;
-
-        foreach ($survey as $record) {
-            // dd($record);÷
-            switch($record['mode1']) {
-                case 'Walking':
-                    $walking++;
-                    break;
-                case 'Vehicle Driver':
-                    $vehicle++;
-                    break;
-                case 'Vehicle Passenger':
-                    $vehicle++;
-                    break;
-                case 'Train':
-                    $train++;
-                    break;
-                case 'Public Bus':
-                    $bus++;
-                    break;
-                case 'School Bus':
-                    $bus++;
-                    break;
-                case 'Other':
-                    $other++;
-                    break;
-            }
-            switch($record['mode2']) {
-                case 'Walking':
-                    $walking++;
-                    break;
-                case 'Vehicle Driver':
-                    $vehicle++;
-                    break;
-                case 'Vehicle Passenger':
-                    $vehicle++;
-                    break;
-                case 'Train':
-                    $train++;
-                    break;
-                case 'Public Bus':
-                    $bus++;
-                    break;
-                case 'School Bus':
-                    $bus++;
-                    break;
-                case 'Other':
-                    $other++;
-                    break;
-            }
-            switch($record['mode3']) {
-                case 'Walking':
-                    $walking++;
-                    break;
-                case 'Vehicle Driver':
-                    $vehicle++;
-                    break;
-                case 'Vehicle Passenger':
-                    $vehicle++;
-                    break;
-                case 'Train':
-                    $train++;
-                    break;
-                case 'Public Bus':
-                    $bus++;
-                    break;
-                case 'School Bus':
-                    $bus++;
-                    break;
-                case 'Other':
-                    $other++;
-                    break;
-            }
-            switch($record['mode4']) {
-                case 'Walking':
-                    $walking++;
-                    break;
-                case 'Vehicle Driver':
-                    $vehicle++;
-                    break;
-                case 'Vehicle Passenger':
-                    $vehicle++;
-                    break;
-                case 'Train':
-                    $train++;
-                    break;
-                case 'Public Bus':
-                    $bus++;
-                    break;
-                case 'School Bus':
-                    $bus++;
-                    break;
-                case 'Other':
-                    $other++;
-                    break;
-            }
-
-            
-            if($record['mode1'] != 'N/A') {
-                $one++;
-                // dd($record);   
-                if($record['mode2'] != 'N/A') {
-                    $two++;
-                    if($record['mode3'] != 'N/A') {
-                        $three++;
-                        if($record['mode4'] != 'N/A') {
-                            $four++;
-                        }
-                    }
-                }
-            }
-            // $walking = ($record['mode1'] == 'Walking' || $record['mode2'] == 'Walking' || $record['mode3'] == 'Walking' || $record['mode4'] == 'Walking') ? $walking++ : $walking;
-            // $vehicle = ($record['mode1'] == 'Vehicle Driver' || $record['mode2'] == 'Vehicle Driver' || $record['mode3'] == 'Vehicle Driver' || $record['mode4'] == 'Vehicle Driver') ? $vehicle++ : $vehicle;
-            // $vehicle = ($record['mode1'] == 'Vehicle Passenger' || $record['mode2'] == 'Vehicle Passenger' || $record['mode3'] == 'Vehicle Passenger' || $record['mode4'] == 'Vehicle Passenger') ? $vehicle++ : $vehicle;
-            // $train = ($record['mode1'] == 'Train' || $record['mode2'] == 'Train' || $record['mode3'] == 'Train' || $record['mode4'] == 'Train') ? $vehicle++ : $vehicle;
-            // $bus = ($record['mode1'] == 'Public Bus' || $record['mode2'] == 'Public Bus' || $record['mode3'] == 'Public Bus' || $record['mode4'] == 'Public Bus') ? $bus++ : $bus;
-            // $bus = ($record['mode1'] == 'School Bus' || $record['mode2'] == 'School Bus' || $record['mode3'] == 'School Bus' || $record['mode4'] == 'School Bus') ? $bus++ : $bus;
-            // $other = ($record['mode1'] == 'Other' || $record['mode2'] == 'Other' || $record['mode3'] == 'Other' || $record['mode4'] == 'Other') ? $other++ : $other;
-            $count = $count + 1;
-        }
+        $lgaName = $request->input('lga', 'Knox');
+        $calculations = self::getLgaCalculations($lgaName);
+        $lgaNames = self::getDistinctLgaNames();
+        $lgaData = self::loadLgaData($lgaName);
 
         return view('current-data', [
-            'count' => $vehicleCount,
-            'population' => $suburb_population,
-            'bus_stops' => $bus_stops,
-            'train_stops' => $train_stops,
-            'suburb' => $suburb,
-            'annual_patronage' => $annual_patronage,
-            'walking' => $walking,
-            'vehicle' => $vehicle,
-            'train' => $train,
-            'bus' => $bus,
-            'other' => $other,
-            'count' => $count,
-            'survey_total' => count($survey),
-            'one' => $one,
-            'two' => $two,
-            'three' => $three,
-            'four' => $four
+        'lgaData' => $lgaData,
+        'lgaName' => $lgaName,
+        'lgaNames' => $lgaNames,
+        'sustainabilityScore' => $calculations->sustainability_score,
+        'futureScore' => $calculations->future_score,
+        'additionalBusStops' => $calculations->additional_bus_stops,
+        'additionalTrainStops' => $calculations->additional_train_stops,
         ]);
     }
 
-    public function loadLgaData($lga)
+    public static function processAllLgas()
+    {
+        $lgas = DB::table('lga_survey_results')
+            ->select('lga_name')
+            ->distinct()
+            ->get();
+
+        foreach ($lgas as $lga) {
+            $lgaName = preg_replace('/\s*\([^)]*\)/', '', trim($lga->lga_name));
+            $lgaData = self::loadLgaData($lgaName);
+            $allLgaData = [$lgaName => $lgaData]; // This needs to be adjusted to include all LGAs
+
+            $currentScore = self::calculateSustainabilityScore($lgaData, $allLgaData);
+            $futureScore = self::predictFutureScore($lgaData, 1.2);
+            $requiredInfrastructure = self::calculateRequiredInfrastructure($currentScore, $currentScore + 10, $lgaData);
+
+            DB::table('lga_calculations')->updateOrInsert(
+                ['lga_name' => $lgaName],
+                [
+                    'sustainability_score' => $currentScore,
+                    'future_score' => $futureScore,
+                    'additional_bus_stops' => $requiredInfrastructure['additional_bus_stops'],
+                    'additional_train_stops' => $requiredInfrastructure['additional_train_stops'],
+                    'updated_at' => now(),
+                ]
+            );
+        }
+    }
+
+    public static function getLgaCalculations($lgaName)
+    {
+        return DB::table('lga_calculations')
+            ->where('lga_name', $lgaName)
+            ->first() ?? self::calculateAndStoreLgaData($lgaName);
+    }
+
+    private static function calculateAndStoreLgaData($lgaName)
+    {
+        $lgaData = self::loadLgaData($lgaName);
+        $allLgaData = [$lgaName => $lgaData]; // This needs to be adjusted to include all LGAs
+
+        $currentScore = self::calculateSustainabilityScore($lgaData, $allLgaData);
+        $futureScore = self::predictFutureScore($lgaData, 1.2);
+        $requiredInfrastructure = self::calculateRequiredInfrastructure($currentScore, $currentScore + 10, $lgaData);
+
+        return DB::table('lga_calculations')->updateOrInsert(
+            ['lga_name' => $lgaName],
+            [
+                'sustainability_score' => $currentScore,
+                'future_score' => $futureScore,
+                'additional_bus_stops' => $requiredInfrastructure['additional_bus_stops'],
+                'additional_train_stops' => $requiredInfrastructure['additional_train_stops'],
+                'updated_at' => now(),
+            ]
+        );
+    }
+
+    public static function calculateSustainabilityScore($lgaData, $allLgaData)
+    {
+
+        $benchmarks = [
+            'pt_usage' => 0.5, // 50% of population using public transport daily
+            'active_transport' => 0.2, // 20% of population walking
+            'vehicle_dependency' => 0.3, // Only 30% using private vehicles
+            'pt_infrastructure' => 5, // 5 bus stops per 1000 people
+            'multi_modal' => 2, // Average of 2 mode changes per trip
+            'avg_commute_time' => 30, // 30 minutes average commute time
+            'ideal_growth' => 0.15, // 15% population growth by 2030
+            'mode_balance' => 0.5, // Ratio of least used to most used transport mode
+        ];
+        
+        $score = 0;
+        $maxScore = 100;
+    
+        // Calculate total users as a proxy for population
+        $totalUsers = $lgaData['bus_users'] + $lgaData['train_users'] + $lgaData['walkers'] + $lgaData['vehicle_users'];
+        if ($totalUsers == 0) return 0; // Return 0 if no users data available
+    
+        // 1. Sustainable Transport Usage (40 points)
+        $sustainableUsers = $lgaData['bus_users'] + $lgaData['train_users'] + $lgaData['walkers'];
+        $sustainableRatio = $sustainableUsers / $totalUsers;
+        $score += 40 * $sustainableRatio;
+    
+        // 2. Public Transport Efficiency (30 points)
+        $ptUsers = $lgaData['bus_users'] + $lgaData['train_users'];
+        $ptTime = $lgaData['avg_time_bus'] + $lgaData['avg_time_train'];
+        $ptEfficiency = $ptUsers > 0 && $ptTime > 0 ? $ptUsers / $ptTime : 0;
+    
+        $maxPtEfficiency = max(array_map(function($lga) {
+            $users = $lga['bus_users'] + $lga['train_users'];
+            $time = $lga['avg_time_bus'] + $lga['avg_time_train'];
+            return $users > 0 && $time > 0 ? $users / $time : 0;
+        }, $allLgaData));
+    
+        $score += $maxPtEfficiency > 0 ? 30 * ($ptEfficiency / $maxPtEfficiency) : 0;
+    
+        // 3. Walking Promotion (20 points)
+        $walkingRatio = $lgaData['walkers'] / $totalUsers;
+        $maxWalkingRatio = max(array_map(function($lga) {
+            $total = $lga['bus_users'] + $lga['train_users'] + $lga['walkers'] + $lga['vehicle_users'];
+            return $total > 0 ? $lga['walkers'] / $total : 0;
+        }, $allLgaData));
+    
+        $score += $maxWalkingRatio > 0 ? 20 * ($walkingRatio / $maxWalkingRatio) : 0;
+    
+        // 4. Multi-modal Transport (10 points)
+        $avgModesChanged = $lgaData['avg_modes_changed'] / $totalUsers;
+        $maxAvgModesChanged = max(array_map(function($lga) {
+            $total = $lga['bus_users'] + $lga['train_users'] + $lga['walkers'] + $lga['vehicle_users'];
+            return $total > 0 ? $lga['avg_modes_changed'] / $total : 0;
+        }, $allLgaData));
+    
+        $score += $maxAvgModesChanged > 0 ? 10 * ($avgModesChanged / $maxAvgModesChanged) : 0;
+    
+        return round($score, 2);
+}
+
+public static function predictFutureScore($lgaData, $populationGrowthFactor)
+{
+    $futureData = $lgaData;
+    foreach (['bus_users', 'train_users', 'walkers', 'vehicle_users'] as $key) {
+        $futureData[$key] *= $populationGrowthFactor;
+    }
+    return self::calculateSustainabilityScore($futureData, [$futureData]);
+}
+
+public static function calculateRequiredInfrastructure($currentScore, $targetScore, $lgaData)
+{
+    $currentTotal = $lgaData['bus_users'] + $lgaData['train_users'];
+    $requiredIncrease = ($targetScore - $currentScore) / 70 * $currentTotal; // 70 is the max points for PT
+    
+    return [
+        'additional_bus_stops' => ceil($requiredIncrease * 0.7), // Assuming 70% of increase through bus stops
+        'additional_train_stops' => ceil($requiredIncrease * 0.3), // Assuming 30% of increase through train stops
+    ];
+}
+
+    public static function loadLgaData($lga)
     {
         $lgaData = [];
         $lgaData['bus_stops'] = DB::table('lga_bus_stops')
         ->where('lga_name', $lga)
-        ->get()->toArray()->count();
+        ->count();
 
-        $lgaData['train_stops'] = DB::table('lga_train_stops')->where('lga_name', $lga)->get()->toArray()->count();
+        $lgaData['train_stops'] = DB::table('lga_train_stops')->where('lga_name', $lga)->get()->count();
 
-        $lgaData['registered_vehicles'] = DB::table('lga_vehicle_reg')->where('lga_name', $lga)->get()->toArray()->count();
+        $lgaData['registered_vehicles'] = DB::table('lga_vehicle_reg')->where('lga_name', $lga)->get('lga_name')->count();
 
-        $lgaData['annual_patronage'] = DB::table('lga_train_annual')->where('lga_name', $lga)->get()->toArray()->count();
+        $lgaData['annual_patronage'] = DB::table('lga_train_annual')->where('lga_name', $lga)->sum('train_annual');
 
+        // $lgaData['survey_results'] = DB::table('lga_survey_results')->where('lga_name', $lga)->get();
+
+        $lgaData['population'] = DB::table('lga_population')->where('LGA_NAME_2023', $lga)->sum('2023_population');
+
+        $lgaData['predicted_population'] = DB::table('lga_prediction_population')->where('lga_name', $lga)->where('reference_date', '6/30/2032 12:00:00 AM')->sum('persons_total');
+
+        $lgaData['walkers'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('walking');
+
+        $lgaData['vehicle'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('vehicle');
+
+        $lgaData['train'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('train'); 
+
+        $lgaData['bus'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('bus');
+
+        $lgaData['other'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('other');
+
+        $lgaData['stops'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('stops');
+
+        $lgaData['count'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->get('count'); 
+
+        $lgaData['total_time_walking'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_walking');
+
+        $lgaData['total_dist_walking'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_dist_walking');   
+
+        $lgaData['total_time_vehicle'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_vehicle');   
+
+        $lgaData['total_dist_vehicle'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_dist_vehicle');   
+
+        $lgaData['total_time_train'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_train');   
+
+        $lgaData['total_dist_train'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_dist_train');   
+
+        $lgaData['total_time_bus'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_bus');   
+
+        $lgaData['total_dist_bus'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_dist_bus');   
+
+        $lgaData['total_time_other'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_other');   
+
+        $lgaData['total_dist_other'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_dist_other');
+
+        $lgaData = [
+            'annual_train_passengers' => $lgaData['annual_patronage'],
+            'bus_users' => $lgaData['bus'],
+            'train_users' => $lgaData['train'],
+            'population' => $lgaData['population'],
+            'walkers' => $lgaData['walkers'],
+            'vehicle_users' => $lgaData['vehicle'],
+            'registered_vehicles' => $lgaData['registered_vehicles'],
+            'train_stops' => $lgaData['train_stops'],
+            'bus_stops' => $lgaData['bus_stops'],
+            'avg_modes_changed' => $lgaData['stops'],
+            'avg_time_train' => $lgaData['total_time_train'],
+            'avg_time_bus' => $lgaData['total_time_bus'],
+            'avg_time_vehicle' => $lgaData['total_time_vehicle'],
+            'avg_time_walking' =>  $lgaData['total_time_walking'],
+            'predicted_population_2030' => $lgaData['predicted_population'],
+        ];
         return $lgaData;
     }
 
-    public static function getSurveyResults($lga){
+    public static function getSurveyResults(){
         $survey = Http::get('https://discover.data.vic.gov.au/api/3/action/datastore_search?resource_id=32949433-4c83-4ce8-83f5-7f7b40bd04d0&limit=100000');
         $survey->json();
         $survey = $survey['result']['records'] ?? [];
@@ -253,8 +250,7 @@ class SuburbAnalysisController extends Controller
     
         // Loop through the survey records and group them by LGA
         foreach ($survey as $record) {
-            $lgaName = $record['lga'] ?? 'Unknown';
-    
+            $lgaName = $record['origLGA'] ?? 'Unknown';
             if (!isset($surveyData[$lgaName])) {
                 $surveyData[$lgaName] = [
                     'walking' => 0,
@@ -272,8 +268,12 @@ class SuburbAnalysisController extends Controller
                     'total_dist_bus' => 0,
                     'total_time_other' => 0,
                     'total_dist_other' => 0,
+                    'stops' => 0,
+                    'count' => 0
                 ];
             }
+
+            $surveyData[$lgaName]['stops'] += $record['stops'] ?? 0;
     
             for ($i = 1; $i <= 4; $i++) {
                 $mode = $record['mode' . $i] ?? null;
@@ -310,6 +310,7 @@ class SuburbAnalysisController extends Controller
                         break;
                 }
             }
+            $surveyData[$lgaName]['count']++;
         }
     
         // Save the aggregated results in the database
@@ -374,7 +375,6 @@ class SuburbAnalysisController extends Controller
             //         break;
             // }
         }
-    }
 
     public static function processLgaPublicTransport(){
         $train_stations = DB::table('lga_train_stops')->get()->toArray();
@@ -417,7 +417,7 @@ class SuburbAnalysisController extends Controller
         }
     }
 
-    public static function processLgaVehiclesRegistered($postcode){
+    public static function processLgaVehiclesRegistered(){
         $postcodes = DB::table('lga_vehicle_reg')->get('POSTCODE')->whereNull('lga_name')->toArray();
         $processedPostcodes = [];
 
@@ -454,11 +454,12 @@ class SuburbAnalysisController extends Controller
         }
     }
 
-    protected function findLga($longitude, $latitude)
+    protected static function findLga($longitude, $latitude)
     {
+        $baseUrl = 'https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/LGA/MapServer/0/query';
         
         try {
-            $response = Http::get($this->baseUrl, [
+            $response = Http::get($baseUrl, [
                 'geometry' => "{$longitude},{$latitude}",
                 'geometryType' => 'esriGeometryPoint',
                 'inSR' => '4326',
@@ -501,12 +502,12 @@ class SuburbAnalysisController extends Controller
 
     public static function putTrainAnnualPax(){
 
-        $response = Http::get('https://discover.data.vic.gov.au/api/3/action/datastore_search?resource_id=d92a2616-9b6b-42ca-960a-b225d82541ac');
+        $response = Http::get('https://discover.data.vic.gov.au/api/3/action/datastore_search?resource_id=d92a2616-9b6b-42ca-960a-b225d82541ac&limit=100000');
         $lgaData = [];
         foreach ($response['result']['records'] as $record) {
             $train_annual_lat = $record['Stop_lat'];
             $train_annual_long = $record['Stop_long'];
-            $lga = $this->findLga($train_annual_long, $train_annual_lat);
+            $lga = self::findLga($train_annual_long, $train_annual_lat);
             $record['lga'] = $lga;
         
             // Check if LGA already exists in the array
@@ -520,11 +521,11 @@ class SuburbAnalysisController extends Controller
                 ];
             }
             DB::table('lga_train_annual')->insert([
-                'STOP_ID' => $record['STOP_ID'],
-                'STOP_NAME' => $record['STOP_NAME'],
+                'STOP_ID' => $record['Stop_ID'],
+                'STOP_NAME' => $record['Stop_name'],
                 'Stop_lat' => $record['Stop_lat'],
                 'Stop_long' => $record['Stop_long'],
-                'train_annual' => $record['train_annual'],
+                'train_annual' => $record['Pax_annual'],
                 'lga_name' => $lga
             ]);
         }
