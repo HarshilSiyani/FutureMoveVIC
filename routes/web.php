@@ -6,6 +6,8 @@ use App\Http\Controllers\SuburbAnalysisController;
 // Route::post('/suburb-analysis/{postcode}', [SuburbAnalysisController::class, 'show'])->name('suburb-analysis');
 
 // GET request for viewing the dashboard
+
+Route::get('/', [SuburbAnalysisController::class, 'index'])->name('home');
 Route::get('/dashboard', [SuburbAnalysisController::class, 'show'])->name('dashboard');
 
 // POST request for form submission

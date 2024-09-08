@@ -6,30 +6,151 @@ use Illuminate\Http\Request;
 use App\Models\Suburb;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
+
 use geoPHP;
 
 class SuburbAnalysisController extends Controller
 {
     protected $baseUrl = 'https://geo.abs.gov.au/arcgis/rest/services/ASGS2021/LGA/MapServer/0/query';
 
+    public function index()
+    {
+        $lgaNames = self::getDistinctLgaNames();
+        $lgaData = collect();
+    
+        foreach ($lgaNames as $lgaName) {
+            $calculations = self::getLgaCalculations($lgaName);
+            if ($calculations) {
+                $lgaData->push([
+                    'name' => $lgaName,
+                    'current_score' => $calculations->sustainability_score,
+                    'future_score' => $calculations->future_score
+                ]);
+            } else {
+                // Handle the case where no calculations are available
+                $lgaData->push([
+                    'name' => $lgaName,
+                    'current_score' => null,
+                    'future_score' => null
+                ]);
+            }
+        }
+    
+        $lgaData = $lgaData->sortByDesc('current_score');
+        $topLgaData = $lgaData->take(10)->values();
+    
+        return view('lga-comparison', compact('lgaData', 'topLgaData'));
+    
+    }
     public function show(Request $request)
     {
+        $start = microtime(true);
+        
         $lgaName = $request->input('lga', 'Knox');
+        Log::info("Starting to process LGA: $lgaName");
+    
+        $timeGetCalc = microtime(true);
         $calculations = self::getLgaCalculations($lgaName);
+        Log::info("Time to get calculations: " . (microtime(true) - $timeGetCalc) . " seconds");
+    
+        $timeGetNames = microtime(true);
         $lgaNames = self::getDistinctLgaNames();
+        Log::info("Time to get LGA names: " . (microtime(true) - $timeGetNames) . " seconds");
+    
+        $timeLoadData = microtime(true);
         $lgaData = self::loadLgaData($lgaName);
-
+        Log::info("Time to load LGA data: " . (microtime(true) - $timeLoadData) . " seconds");
+    
+        // Calculate state averages
+        $timeStateAvg = microtime(true);
+        $stateAverages = $this->calculateStateAverages();
+        Log::info("Time to calculate state averages: " . (microtime(true) - $timeStateAvg) . " seconds");
+    
+        // Calculate local metrics
+        $ptEfficiency = $lgaData['population'] > 0 ? 
+            ($lgaData['bus_users'] + $lgaData['train_users']) / $lgaData['population'] * 100 : 0;
+        
+        $sustainableRatio = $lgaData['population'] > 0 ? 
+            ($lgaData['bus_users'] + $lgaData['train_users'] + $lgaData['walkers']) / $lgaData['population'] * 100 : 0;
+        
+        $infraDensity = $lgaData['population'] > 0 ? 
+            ($lgaData['bus_stops'] + $lgaData['train_stops']) / ($lgaData['population'] / 1000) : 0;
+    
+        // Calculate sustainability ranking
+        $timeRanking = microtime(true);
+        $sustainabilityRanking = $this->calculateSustainabilityRanking($lgaName);
+        $totalLGAs = $lgaNames->count();
+        Log::info("Time to calculate ranking: " . (microtime(true) - $timeRanking) . " seconds");
+    
+        $totalTime = microtime(true) - $start;
+        Log::info("Total processing time: $totalTime seconds");
+    
         return view('current-data', [
-        'lgaData' => $lgaData,
-        'lgaName' => $lgaName,
-        'lgaNames' => $lgaNames,
-        'sustainabilityScore' => $calculations->sustainability_score,
-        'futureScore' => $calculations->future_score,
-        'additionalBusStops' => $calculations->additional_bus_stops,
-        'additionalTrainStops' => $calculations->additional_train_stops,
+            'lgaData' => $lgaData,
+            'lgaName' => $lgaName,
+            'lgaNames' => $lgaNames,
+            'sustainabilityScore' => $calculations->sustainability_score,
+            'futureScore' => $calculations->future_score,
+            'additionalBusStops' => $calculations->additional_bus_stops,
+            'additionalTrainStops' => $calculations->additional_train_stops,
+            'ptEfficiency' => $ptEfficiency,
+            'sustainableRatio' => $sustainableRatio,
+            'infraDensity' => $infraDensity,
+            'stateAvgPTUsage' => $stateAverages['ptUsage'],
+            'stateAvgSustainableTransport' => $stateAverages['sustainableTransport'],
+            'stateAvgInfraDensity' => $stateAverages['infraDensity'],
+            'sustainabilityRanking' => $sustainabilityRanking,
+            'totalLGAs' => $totalLGAs,
         ]);
     }
+    
+    private function calculateStateAverages()
+{
+    // This could be cached to improve performance
+    return Cache::remember('state_averages', now()->addDay(), function () {
+        $allLgaData = DB::table('lga_survey_results')
+            ->join('lga_population', 'lga_survey_results.lga_name', '=', 'lga_population.LGA_NAME_2023')
+            ->selectRaw('
+                SUM(lga_survey_results.bus + lga_survey_results.train) as total_pt_users,
+                SUM(lga_survey_results.bus + lga_survey_results.train + lga_survey_results.walking) as total_sustainable_users,
+                SUM(lga_population."2023_population") as total_population,
+                COUNT(DISTINCT lga_survey_results.lga_name) as lga_count
+            ')
+            ->first();
 
+        $totalStops = DB::table('lga_bus_stops')->count() + DB::table('lga_train_stops')->count();
+
+        return [
+            'ptUsage' => $allLgaData->total_population > 0 ? 
+                ($allLgaData->total_pt_users / $allLgaData->total_population) * 100 : 0,
+            'sustainableTransport' => $allLgaData->total_population > 0 ? 
+                ($allLgaData->total_sustainable_users / $allLgaData->total_population) * 100 : 0,
+            'infraDensity' => $allLgaData->total_population > 0 ? 
+                ($totalStops / ($allLgaData->total_population / 1000)) : 0,
+        ];
+    });
+}
+    
+    private function calculateSustainabilityRanking($lgaName)
+    {
+        $allScores = DB::table('lga_calculations')
+            ->orderByDesc('sustainability_score')
+            ->pluck('lga_name')
+            ->toArray();
+    
+        return array_search($lgaName, $allScores) + 1; // +1 because array indexes start at 0
+    }
+
+// Add this method to your controller if not already present
+private static function getAllLgaScores()
+{
+    return DB::table('lga_calculations')
+        ->select('lga_name', 'sustainability_score')
+        ->orderByDesc('sustainability_score')
+        ->get();
+}
     public static function processAllLgas()
     {
         $lgas = DB::table('lga_survey_results')
@@ -198,7 +319,7 @@ public static function calculateRequiredInfrastructure($currentScore, $targetSco
 
         $lgaData['stops'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('stops');
 
-        $lgaData['count'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->get('count'); 
+        $lgaData['count'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('count'); 
 
         $lgaData['total_time_walking'] = DB::table('lga_survey_results')->where('lga_name', 'like', "%{$lga}%")->sum('total_time_walking');
 
@@ -230,7 +351,7 @@ public static function calculateRequiredInfrastructure($currentScore, $targetSco
             'registered_vehicles' => $lgaData['registered_vehicles'],
             'train_stops' => $lgaData['train_stops'],
             'bus_stops' => $lgaData['bus_stops'],
-            'avg_modes_changed' => $lgaData['stops'],
+            'avg_modes_changed' => $lgaData['count'] > 0 ? $lgaData['stops'] / $lgaData['count'] : 0,
             'avg_time_train' => $lgaData['total_time_train'],
             'avg_time_bus' => $lgaData['total_time_bus'],
             'avg_time_vehicle' => $lgaData['total_time_vehicle'],
